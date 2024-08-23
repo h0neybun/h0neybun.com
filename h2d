@@ -1,0 +1,3 @@
+hugo new posts/trash.md
+hugo server
+

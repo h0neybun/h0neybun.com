@@ -1,0 +1,56 @@
+#baseurl: ""
+#relativeUrls: true
+#title: h0neybun
+#theme: simple-style
+theme: archie
+
+#menu:
+#  main:
+#  - name: posts
+#    url: /posts
+#    weight: 10
+#  - name: about
+#    url: /about
+#    weight: 20
+
+
+baseURL: "https://example.com"
+languageCode: "en-us"
+title: "h0neybun"
+theme: "archie"
+copyright: "© h0neybun"
+pygmentsstyle: "monokai"
+pygmentscodefences: true
+pygmentscodefencesguesssyntax: true
+
+params:
+  mode: "light"
+  useCDN: false
+  subtitle: "dev*oops* engineer - a blog by M Ilham Hanifan"
+
+params.social:
+  - name: "GitHub"
+    icon: "github"
+    url: "https://github.com/h0neybun"
+  - name: "Twitter"
+    icon: "twitter"
+    url: "https://twitter.com/_honeybun"
+#  - name: "GitLab"
+#    icon: "gitlab"
+#    url: "https://gitlab.com/athul/"
+
+menu:
+  main:
+    - name: "home"
+      url: "/"
+      weight: 10
+    - name: "posts"
+      url: "/posts"
+      weight: 20
+#    - name: "tags"
+#      url: "/tags"
+#      weight: 30
+    - name: "about"
+      url: "/about"
+      weight: 40
+

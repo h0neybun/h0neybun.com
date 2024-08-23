@@ -1,0 +1,19 @@
+/* Markdown */
+:root{
+--maincolor:pink;
+--bordercl:rebeccapurple;
+--callouctcolor:dodgerblue;
+--hovercolor:navy;
+--darkMaincolor: #50fa7b;
+}
+
+a {
+  border-bottom: 3px solid var(--maincolor);
+  color: inherit;
+  text-decoration: none;
+}
+a:hover {
+    background-color: var(--hovercolor);
+    color: #fff;
+}
+

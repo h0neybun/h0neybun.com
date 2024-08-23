@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html><head lang="en"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>Setup Hugo Blog on Vps - h0neybun</title><meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Hi. This is a guide on how to setup a hugo blog on vps. It will be simple and it is how i host this site h0neybun.com
+requirements first of all you need this stuff:
+a domain. i buy it from cloudflare a vps. a cheap one will do setup ssl for nginx In this guide i will be using Letsencrypt with wildcard ssl. The main reason is because its free and widely used." />
+	<meta property="og:image" content=""/>
+	<meta property="og:url" content="http://localhost:1313/posts/setup-hugo-blog-on-vps/">
+  <meta property="og:site_name" content="h0neybun">
+  <meta property="og:title" content="Setup Hugo Blog on Vps">
+  <meta property="og:description" content="Hi. This is a guide on how to setup a hugo blog on vps. It will be simple and it is how i host this site h0neybun.com
+requirements first of all you need this stuff:
+a domain. i buy it from cloudflare a vps. a cheap one will do setup ssl for nginx In this guide i will be using Letsencrypt with wildcard ssl. The main reason is because its free and widely used.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-08-21T17:56:43+07:00">
+    <meta property="article:modified_time" content="2024-08-21T17:56:43+07:00">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Setup Hugo Blog on Vps">
+  <meta name="twitter:description" content="Hi. This is a guide on how to setup a hugo blog on vps. It will be simple and it is how i host this site h0neybun.com
+requirements first of all you need this stuff:
+a domain. i buy it from cloudflare a vps. a cheap one will do setup ssl for nginx In this guide i will be using Letsencrypt with wildcard ssl. The main reason is because its free and widely used.">
+
+	
+        <link href="http://localhost:1313/css/fonts.2c2227b81b1970a03e760aa2e6121cd01f87c88586803cbb282aa224720a765f.css" rel="stylesheet">
+	
+
+	
+	<link rel="stylesheet" type="text/css" media="screen" href="http://localhost:1313/css/main.1e77d12e14dab694f32b9757e7b8e6b87d5b709dd0381c347f4c4717484545fc.css" />
+
+	
+	
+
+	
+	
+
+	
+</head>
+<body>
+        <div class="content"><header>
+	<div class="main">
+		<a href="http://localhost:1313/">h0neybun</a>
+	</div>
+	<nav>
+		
+		<a href="/">home</a>
+		
+		<a href="/posts">posts</a>
+		
+		<a href="/about">about</a>
+		
+		
+	</nav>
+</header>
+
+<main>
+	<article>
+		<div class="title">
+			<h1 class="title">Setup Hugo Blog on Vps</h1>
+			<div class="meta">Posted on Aug 21, 2024</div>
+		</div>
+		
+		<div class="tldr">
+			<strong>tl;dr:</strong>
+			Guide for setting up hugo blog on vps
+		</div>
+
+		
+		<div class="toc">
+		<strong>Table of contents:</strong>
+		<nav id="TableOfContents">
+  <ul>
+    <li><a href="#requirements">requirements</a></li>
+    <li><a href="#setup-ssl-for-nginx">setup ssl for nginx</a></li>
+    <li><a href="#setup-dns-records">setup dns records</a></li>
+    <li><a href="#setup-nginx--server">setup nginx + server</a></li>
+    <li><a href="#setup-hugo">setup hugo</a></li>
+  </ul>
+</nav>
+		</div>
+
+		<section class="body">
+			<p>Hi. This is a guide on how to setup a hugo blog on vps. It will be simple and it is how i host this site h0neybun.com</p>
+<h2 id="requirements">requirements</h2>
+<p>first of all you need this stuff:</p>
+<ul>
+<li>a domain. i buy it from cloudflare</li>
+<li>a vps. a cheap one will do</li>
+</ul>
+<h2 id="setup-ssl-for-nginx">setup ssl for nginx</h2>
+<p>In this guide i will be using Letsencrypt with wildcard ssl. The main reason is because its free and widely used. I also want to add wildcard ssl so it also covers all the subdomains (*.honeybun.com) for my site in addition to the honeybun.com.</p>
+<p>Usually i would use Let&rsquo;s encrypt and do renewal every 3 months. This is easy to script using certbot&rsquo;s plugins of your domain registrar and automated using cron. However since i moved to cloudflare (rip google domains, im not using squarespace sorry) i noticed that cloudflare provide a free ssl cert that can last a long time without renewal (15 years!). But theres a catch and its a bit different. note: if you wish to use let&rsquo;s encrypt instead on cloudflare just turn off the &lsquo;proxied&rsquo; option in the dns entry.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Cloudflare SSL                                   
+</span></span><span style="display:flex;"><span>┌─────────┐      ┌────────────┐        ┌────────┐
+</span></span><span style="display:flex;"><span>│ browser ┼──┬───► cloudflare ┼───┬────► origin │
+</span></span><span style="display:flex;"><span>└─────────┘  │   └────────────┘   │    │ server │
+</span></span><span style="display:flex;"><span>             │                    │    └────────┘
+</span></span><span style="display:flex;"><span>           edge               origin             
+</span></span><span style="display:flex;"><span>           certificate        certificate        
+</span></span><span style="display:flex;"><span>                                                 
+</span></span><span style="display:flex;"><span>                                                 
+</span></span><span style="display:flex;"><span>Let&#39;s Encrypt SSL                                
+</span></span><span style="display:flex;"><span>      ┌─────────┐            ┌─────────┐         
+</span></span><span style="display:flex;"><span>      │ browser ┼─────┬──────► origin  │         
+</span></span><span style="display:flex;"><span>      └─────────┘     │      │ server  │         
+</span></span><span style="display:flex;"><span>                      │      └─────────┘         
+</span></span><span style="display:flex;"><span>                 let&#39;s encrypt                   
+</span></span><span style="display:flex;"><span>                 certificate                     
+</span></span></code></pre></div><p>In letsencrypt theres a single certificate that secures communication between user and origin server. But in cloudflare there are 2 legs of ssl certs, edge and origin:</p>
+<ul>
+<li>edge certificate encrypts traffic between your end user&rsquo;s browser with cloudflare.</li>
+<li>origin certificate encrypts the traffic between your origin server(vps) with cloudflare</li>
+</ul>
+<p>There are multiple encryption modes that is described <a href="https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/#custom-ssltls">here</a> but heres the short version:</p>
+<ul>
+<li>using off and flexible is a bad idea for prod but acceptable for dev cause its convenient.</li>
+<li>full(strict), and full(ssl-only origin pull) is preferred for production. IMO full is not preferred because although it requires to use an origin cert it is not enforced meaning ANY cert will do (self signed, expired, or anything really will work).</li>
+</ul>
+<p>After looking into it i decided to use full(strict) encryption and I will use the cert provided by cloudflare. Okay now lets get into it!</p>
+<ol>
+<li>Navigate thru the menu <code>Domain Name &gt; SSL/TLS &gt; Origin Server &gt; Create Certificate</code></li>
+<li>Choose <code>Generate Private key and CSR with Cloudflare</code> - i chose not to bother with these and let CF do it for me</li>
+<li>In the hostnames make sure theres 2 entries: your domain and wildcard. for me the value is <code>*.h0neybun.com, h0neybun.com</code></li>
+<li>Choose 15 years for <code>Certificate Validity</code> - no renewal at least for the next 1.5 decade, yay</li>
+<li>Click create and save your certificate and private key. note: save those files now because you can always redownload your origin certs but NOT your private key.</li>
+</ol>
+<p>And its done! on to the next part</p>
+<h2 id="setup-dns-records">setup dns records</h2>
+<p>probably i should&rsquo;ve done this first but it doesnt matter. For now ill just set up DNS for <code>h0neybun.com</code> and <code>www.h0neybun.com</code>. Here are the steps:</p>
+<ol>
+<li>Navigate thru the menu <code>Domain Name &gt; DNS &gt; Records </code></li>
+<li>Add these records:
+<table>
+<thead>
+<tr>
+<th>type</th>
+<th>name</th>
+<th>content</th>
+<th>proxy status</th>
+<th>ttl</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>@</td>
+<td>{your server public ip}</td>
+<td>proxied</td>
+<td>auto</td>
+</tr>
+<tr>
+<td>CNAME</td>
+<td><a href="https://www.h0neybun.com">www.h0neybun.com</a></td>
+<td>h0neybun.com</td>
+<td>proxied</td>
+<td>auto</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ol>
+<p>Now lets wait for a while for the dns records to be updated and we can check it using whois. When completed it will shows that the domain is registered and it&rsquo;s registrar is cloudflare like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>reisa@legion:~/projects/ssl$ whois h0neybun.com | grep <span style="color:#e6db74">&#34;Registry database&#34;</span> -A <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>The Registry database contains ONLY .COM, .NET, .EDU domains and
+</span></span><span style="display:flex;"><span>Registrars.
+</span></span><span style="display:flex;"><span>Domain Name: H0NEYBUN.COM
+</span></span><span style="display:flex;"><span>Registry Domain ID: 2908736670_DOMAIN_COM-VRSN
+</span></span><span style="display:flex;"><span>Registrar WHOIS Server: whois.cloudflare.com
+</span></span><span style="display:flex;"><span>Registrar URL: https://www.cloudflare.com
+</span></span><span style="display:flex;"><span>Updated Date: 2024-08-22T09:41:57Z
+</span></span><span style="display:flex;"><span>Creation Date: 2024-08-17T07:56:14Z
+</span></span><span style="display:flex;"><span>Registrar Registration Expiration Date: 2025-08-17T07:56:14Z
+</span></span><span style="display:flex;"><span>Registrar: Cloudflare, Inc.
+</span></span><span style="display:flex;"><span>Registrar IANA ID: <span style="color:#ae81ff">1910</span>
+</span></span><span style="display:flex;"><span>reisa@legion:~/projects/ssl$
+</span></span></code></pre></div><h2 id="setup-nginx--server">setup nginx + server</h2>
+<p>heres generally how the nginx config is</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>server {
+</span></span><span style="display:flex;"><span>  listen 80;
+</span></span><span style="display:flex;"><span>  server_name h0neybun.com www.h0neybun.com;
+</span></span><span style="display:flex;"><span>  return 301 https://$host$request_uri;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>server {
+</span></span><span style="display:flex;"><span>  listen 443 ssl;
+</span></span><span style="display:flex;"><span>  server_name h0neybun.com www.h0neybun.com;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  ssl_certificate /{path to origin cert}
+</span></span><span style="display:flex;"><span>  ssl_certificate_key /{path to private key}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  root /{path to blog}
+</span></span><span style="display:flex;"><span>  index index.html;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  location / {
+</span></span><span style="display:flex;"><span>    try_files $uri $uri/ =404;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  location /static/ {
+</span></span><span style="display:flex;"><span>    autoindex on;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="setup-hugo">setup hugo</h2>
+<p>welp <a href="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/2913b5a9-6192-4abf-a365-977a20e4afa9/dg7itd7-3a080063-bd0f-45da-87ab-c605e262d46b.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcLzI5MTNiNWE5LTYxOTItNGFiZi1hMzY1LTk3N2EyMGU0YWZhOVwvZGc3aXRkNy0zYTA4MDA2My1iZDBmLTQ1ZGEtODdhYi1jNjA1ZTI2MmQ0NmIuanBnIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.FcwVAqhvWLPQ7WxiglGMl-lNTCtogHvXkknNvXjkj6k">im not gonna sugarcoat it</a>, i didnt make my own blog site. I use this theme called <a href="https://themes.gohugo.io/themes/archie/">archie</a> and it is nice and clean. You can see the sauce code for this site <a href="https://github.com/h0neybun/h0neybun.com">here</a></p>
+<p>hugo is a static site generator. It builds the site into a static html css file so its lightweight and fast. to deploy it i use this script from my localhost (make sure the path is owned by ssh user):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>hugo <span style="color:#f92672">&amp;&amp;</span> rsync -avz --delete ./public/ <span style="color:#f92672">{</span>server<span style="color:#f92672">}</span>:<span style="color:#f92672">{</span>path to blog<span style="color:#f92672">}</span>
+</span></span></code></pre></div>
+		</section>
+
+		<div class="post-tags">
+			
+			
+			
+		</div>
+		</article>
+</main>
+<footer>
+  <div style="display:flex"></div>
+  <div class="footer-info">
+    2024  © h0neybun |  <a
+      href="https://github.com/athul/archie">Archie Theme</a> | Built with <a href="https://gohugo.io">Hugo</a>
+  </div>
+</footer>
+</div>
+    </body>
+</html>

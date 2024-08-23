@@ -1,0 +1,22 @@
+#baseURL = "http://localhost:1313/"
+baseURL = ""
+relativeUrls = true
+title = "My New Hugo Site"
+theme = "simple-style"
+#theme = "honeybun"
+
+
+[menu]
+  [[menu.main]]
+    identifier = "posts"
+    name = "Posts"
+    url = "/posts"
+    weight = 10
+
+  [[menu.main]]
+    identifier = "about"
+    name = "About"
+    url = "/about"
+    weight = 20
+
+
